@@ -66,12 +66,14 @@ async fn metrics_handler() -> Result<impl Reply, Rejection> {
 fn track(limit: String, remain: String) {
     let l: Vec<&str> = limit.as_str().split(";").collect();
     let r: Vec<&str> = remain.as_str().split(";").collect();
-
-    let lm = l[0].to_string();
-    let rm = r[0].to_string();
-    DOCKER_GAUGE_LIMIT.set(lm.parse().unwrap());
-    DOCKER_GAUGE_REMAINING.set(rm.parse().unwrap());
-
+    if l.len() > 0 && r.len() > 0 {
+        let lm = l[0].to_string();
+        let rm = r[0].to_string();
+        DOCKER_GAUGE_LIMIT.set(lm.parse().unwrap());
+        DOCKER_GAUGE_REMAINING.set(rm.parse().unwrap());
+    } else {
+        return;
+    }
 }
 
 async fn data_collector() {
