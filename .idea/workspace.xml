@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CargoProjects">
+    <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="dfe1d28c-c343-4aa7-a733-c47b5f2ce0e1" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="MacroExpansionManager">
+    <option name="directoryName" value="uw36ybky" />
+  </component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="mavenHome" value="$APPLICATION_HOME_DIR$/plugins/maven/lib/maven3" />
+      </MavenGeneralSettings>
+    </option>
+  </component>
+  <component name="ProjectId" id="1lhfK4LQeJrRwQ3iN9nKoGjAjSb" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
+    <property name="org.rust.hideNoCargoProjectNotifications/home/sachin/blackhole/rust-fu/prom-docker-limit-exporter/src/main.rs" value="true" />
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
+  </component>
+  <component name="RustProjectSettings">
+    <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
+    <option name="version" value="2" />
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="WindowStateProjectService">
+    <state x="417" y="186" width="1303" height="684" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1608054247680">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state x="417" y="186" width="1303" height="684" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1080@0.0.1920.1080" timestamp="1608054247680" />
+    <state x="683" y="286" key="FileChooserDialogImpl" timestamp="1608054197322">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state x="683" y="286" key="FileChooserDialogImpl/0.0.1920.1080@0.0.1920.1080" timestamp="1608054197322" />
+    <state width="1830" height="252" key="GridCell.Tab.0.bottom" timestamp="1608054674534">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state width="1830" height="252" key="GridCell.Tab.0.bottom/0.0.1920.1080@0.0.1920.1080" timestamp="1608054674534" />
+    <state width="1830" height="252" key="GridCell.Tab.0.center" timestamp="1608054674534">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state width="1830" height="252" key="GridCell.Tab.0.center/0.0.1920.1080@0.0.1920.1080" timestamp="1608054674534" />
+    <state width="1830" height="252" key="GridCell.Tab.0.left" timestamp="1608054674534">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state width="1830" height="252" key="GridCell.Tab.0.left/0.0.1920.1080@0.0.1920.1080" timestamp="1608054674534" />
+    <state width="1830" height="252" key="GridCell.Tab.0.right" timestamp="1608054674534">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state width="1830" height="252" key="GridCell.Tab.0.right/0.0.1920.1080@0.0.1920.1080" timestamp="1608054674534" />
+    <state x="470" y="163" key="SettingsEditor" timestamp="1608054664733">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state x="470" y="163" key="SettingsEditor/0.0.1920.1080@0.0.1920.1080" timestamp="1608054664733" />
+  </component>
+</project>
