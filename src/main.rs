@@ -27,7 +27,7 @@ lazy_static! {
     static ref DOCKER_GAUGE_LIMIT: Gauge = register_gauge!(opts!(
         "dockerhub_limit_requests_total",
         "Docker Hub Rate Limit Requests",
-        labels! {"docker" => "limits"}
+        labels! {"docker" => "limit"}
     ))
     .unwrap();
     pub static ref REGISTRY: Registry = Registry::new();
