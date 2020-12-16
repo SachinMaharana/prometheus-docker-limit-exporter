@@ -126,11 +126,13 @@ async fn extract_token(dc: &DockerHub) -> Token {
         Err(e) => {
             if let Some(err) = e.downcast_ref::<reqwest::Error>() {
                 error!("Request Error: {}", err);
+                std::process::exit(1);
             }
             if let Some(err) = e.downcast_ref::<config::ConfigError>() {
                 error!("Config Error: {}", err);
+                std::process::exit(1);
             }
-            error!("Unknown Error: {}",e);
+            error!("Unknown Error: {}", e);
             std::process::exit(1);
         }
     };
@@ -143,11 +145,13 @@ async fn extract_limit_remain(token: &Token, dc: &DockerHub) -> (String, String)
         Err(e) => {
             if let Some(err) = e.downcast_ref::<reqwest::Error>() {
                 error!("Request Error: {}", err);
+                std::process::exit(1);
             }
             if let Some(err) = e.downcast_ref::<config::ConfigError>() {
                 error!("Config Error: {}", err);
+                std::process::exit(1);
             }
-            error!("Unknown Error: {}",e);
+            error!("Unknown Error: {}", e);
             std::process::exit(1);
         }
     };
