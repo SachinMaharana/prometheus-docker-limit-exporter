@@ -11,7 +11,7 @@ services:
     image: prom/prometheus:latest
     volumes:
       - type: bind
-        source: ./prometheus.yaml
+        source: ./infra/prometheus.yaml
         target: /etc/prometheus.yaml
     entrypoint:
       - /bin/prometheus
@@ -22,9 +22,9 @@ services:
   grafana:
     image: grafana/grafana:latest
     volumes:
-      - ./example-data/datasources:/etc/grafana/provisioning/datasources
-      - ./example-data/dashboards-provisioning:/etc/grafana/provisioning/dashboards
-      - ./example-data/dashboards:/var/lib/grafana/dashboards
+      - ./infra/datasources:/etc/grafana/provisioning/datasources
+      - ./infra/dashboards-provisioning:/etc/grafana/provisioning/dashboards
+      - ./infra/dashboards:/var/lib/grafana/dashboards
     environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
