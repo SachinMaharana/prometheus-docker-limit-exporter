@@ -42,7 +42,12 @@ async fn main() {
 
     let metrics_route = warp::path!("metrics").and_then(metrics_handler);
 
-    tokio::task::spawn(metrics_collector());
+    let username = env::var("DOCKERHUB_USERNAME").unwrap_or_default();
+    let password = env::var("DOCKERHUB_PASSWORD").unwrap_or_default();
+
+    let docker_client = DockerHub::new(username, password);
+
+    tokio::task::spawn(metrics_collector(docker_client.clone()));
 
     warp::serve(metrics_route).run(([0, 0, 0, 0], 8080)).await;
 }
@@ -75,13 +80,8 @@ async fn metrics_handler() -> Result<impl Reply, Rejection> {
     Ok(res)
 }
 
-async fn metrics_collector() {
+async fn metrics_collector(docker_client: DockerHub) {
     let mut collect_interval = tokio::time::interval(Duration::from_secs(15));
-
-    let username = env::var("DOCKERHUB_USERNAME").unwrap_or_default();
-    let password = env::var("DOCKERHUB_PASSWORD").unwrap_or_default();
-
-    let docker_client = DockerHub::new(username, password);
 
     let mut token = extract_token(&docker_client).await;
 
@@ -107,7 +107,7 @@ fn set_metrics(limit: String, remain: String) {
     let limit_split: Vec<&str> = limit.as_str().split(";").collect();
     let remain_split: Vec<&str> = remain.as_str().split(";").collect();
 
-    if limit_split.len() > 0 && remain_split.len() > 0 {
+    if !limit_split.is_empty() && !remain_split.is_empty() {
         let final_limit = limit_split[0].to_string().parse().unwrap();
         let final_remain = remain_split[0].to_string().parse().unwrap();
 
@@ -177,6 +177,7 @@ fn is_valid_token(token: &Token) -> bool {
     return true;
 }
 
+#[derive(Clone)]
 struct DockerHub {
     username: String,
     password: String,
