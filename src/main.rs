@@ -7,14 +7,17 @@ extern crate pretty_env_logger;
 #[macro_use]
 extern crate log;
 
+use broadcast::{Receiver, Sender};
+use futures::{Stream, StreamExt};
 use jsonwebtoken::{dangerous_insecure_decode_with_validation, Algorithm, Validation};
 use prometheus::{Gauge, Registry};
 use reqwest::header::HeaderValue;
 use serde::{Deserialize, Serialize};
-use std::env;
 use std::result::Result;
 use std::time::Duration;
-use warp::Filter;
+use std::{ env};
+use tokio::sync::broadcast;
+use warp::{sse::ServerSentEvent, Filter};
 use warp::{Rejection, Reply};
 
 lazy_static! {
@@ -42,14 +45,49 @@ async fn main() {
 
     let metrics_route = warp::path!("metrics").and_then(metrics_handler);
 
+    let (tx, mut rx) = broadcast::channel(15);
+    let tx1 = tx.clone();
+
     let username = env::var("DOCKERHUB_USERNAME").unwrap_or_default();
     let password = env::var("DOCKERHUB_PASSWORD").unwrap_or_default();
 
     let docker_client = DockerHub::new(username, password);
 
-    tokio::task::spawn(metrics_collector(docker_client.clone()));
+    tokio::spawn(metrics_collector(docker_client.clone(), tx));
 
-    warp::serve(metrics_route).run(([0, 0, 0, 0], 8080)).await;
+    tokio::spawn(async move {
+        loop {
+            let received = rx.recv().await;
+            match received {
+                Ok((limit, remain)) => {
+                    info!("{}, {}", limit, remain);
+                    set_metrics(limit, remain);
+                }
+                Err(e) => error!("Error: {:?}", e),
+            }
+        }
+    });
+
+    let route = warp::path("ticks").and(warp::get()).map(move || {
+        let rx1 = tx1.subscribe();
+
+        let e_x = sse_counter(rx1);
+        warp::sse::reply(warp::sse::keep_alive().stream(e_x))
+    });
+
+    let routes = metrics_route.or(route);
+
+    warp::serve(routes).run(([0, 0, 0, 0], 8080)).await;
+}
+
+fn sse_counter(
+    rx: Receiver<(f64, f64)>,
+) -> impl Stream<Item = Result<impl ServerSentEvent + Send + 'static, warp::Error>> + Send + 'static
+{
+    rx.map(|s| match s {
+        Ok((_, v)) => Ok(warp::sse::data(v)),
+        Err(e) => panic!(e),
+    })
 }
 
 fn register_custom_metrics() {
@@ -80,8 +118,8 @@ async fn metrics_handler() -> Result<impl Reply, Rejection> {
     Ok(res)
 }
 
-async fn metrics_collector(docker_client: DockerHub) {
-    let mut collect_interval = tokio::time::interval(Duration::from_secs(15));
+async fn metrics_collector(docker_client: DockerHub, tx: Sender<(f64, f64)>) {
+    let mut collect_interval = tokio::time::interval(Duration::from_secs(9));
 
     let mut token = extract_token(&docker_client).await;
 
@@ -90,7 +128,9 @@ async fn metrics_collector(docker_client: DockerHub) {
 
         if is_valid_token(&token) {
             let (limit, remain) = extract_limit_remain(&token, &docker_client).await;
-            set_metrics(limit, remain);
+            if let Some((l, r)) = cleanup_metrics(limit, remain) {
+                tx.send((l, r)).unwrap();
+            }
         } else {
             error!("Invalid Token, Renewing");
             token = extract_token(&docker_client).await;
@@ -99,9 +139,10 @@ async fn metrics_collector(docker_client: DockerHub) {
     }
 }
 
-fn set_metrics(limit: String, remain: String) {
+fn cleanup_metrics(limit: String, remain: String) -> Option<(f64, f64)> {
     if limit.is_empty() && remain.is_empty() {
-        return;
+        warn!("Limit and Remain is Empty.");
+        return None;
     }
 
     let limit_split: Vec<&str> = limit.as_str().split(";").collect();
@@ -111,13 +152,16 @@ fn set_metrics(limit: String, remain: String) {
         let final_limit = limit_split[0].to_string().parse().unwrap();
         let final_remain = remain_split[0].to_string().parse().unwrap();
 
-        info!("{}, {}", final_limit, final_remain);
-
-        DOCKER_GAUGE_LIMIT.set(final_limit);
-        DOCKER_GAUGE_REMAINING.set(final_remain);
+        return Some((final_limit, final_remain));
     } else {
-        return;
+        warn!("Limit Vector and Remain Vector is Empty");
+        return None;
     }
+}
+
+fn set_metrics(limit: f64, remain: f64) {
+    DOCKER_GAUGE_LIMIT.set(limit);
+    DOCKER_GAUGE_REMAINING.set(remain);
 }
 
 async fn extract_token(dc: &DockerHub) -> Token {

@@ -8,9 +8,9 @@ edition = "2018"
 
 [dependencies]
 hyper = "^0.13"
-tokio = { version = "^0.2", features = ["full"] }
+tokio = { version = "0.2", features = ["full"] }
 prometheus = "0.11.0" 
-warp = "0.2.5"
+warp = "0.2"
 lazy_static = "1.4.0"
 futures = "0.3.8" 
 rand = "0.7.3"
@@ -22,3 +22,4 @@ config = "0.10.1"
 jsonwebtoken = "7.2.0"
 serde_json = "1.0.60"
 external-ip = "4.0.0"
+anyhow = "1.0.36"
