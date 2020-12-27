@@ -63,7 +63,10 @@ async fn main() {
                     info!("{}, {}", limit, remain);
                     set_metrics(limit, remain);
                 }
-                Err(e) => error!("Error: {:?}", e),
+                Err(e) => {
+                    error!("Error: {:?}", e);
+                    std::process::exit(1);
+                },
             }
         }
     });
@@ -71,8 +74,8 @@ async fn main() {
     let route = warp::path("ticks").and(warp::get()).map(move || {
         let rx1 = tx1.subscribe();
 
-        let e_x = sse_counter(rx1);
-        warp::sse::reply(warp::sse::keep_alive().stream(e_x))
+        let event_stream = metrics_stream(rx1);
+        warp::sse::reply(warp::sse::keep_alive().stream(event_stream))
     });
 
     let routes = metrics_route.or(route);
@@ -80,13 +83,16 @@ async fn main() {
     warp::serve(routes).run(([0, 0, 0, 0], 8080)).await;
 }
 
-fn sse_counter(
+fn metrics_stream(
     rx: Receiver<(f64, f64)>,
 ) -> impl Stream<Item = Result<impl ServerSentEvent + Send + 'static, warp::Error>> + Send + 'static
 {
     rx.map(|s| match s {
         Ok((_, v)) => Ok(warp::sse::data(v)),
-        Err(e) => panic!(e),
+        Err(e) => {
+            error!("Error in receiving: {}", e);
+            std::process::exit(1);
+        }
     })
 }
 
