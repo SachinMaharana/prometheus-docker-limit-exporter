@@ -13,9 +13,9 @@ use jsonwebtoken::{dangerous_insecure_decode_with_validation, Algorithm, Validat
 use prometheus::{Gauge, Registry};
 use reqwest::header::HeaderValue;
 use serde::{Deserialize, Serialize};
+use std::env;
 use std::result::Result;
 use std::time::Duration;
-use std::{ env};
 use tokio::sync::broadcast;
 use warp::{sse::ServerSentEvent, Filter};
 use warp::{Rejection, Reply};
@@ -66,7 +66,7 @@ async fn main() {
                 Err(e) => {
                     error!("Error: {:?}", e);
                     std::process::exit(1);
-                },
+                }
             }
         }
     });
@@ -88,7 +88,7 @@ fn metrics_stream(
 ) -> impl Stream<Item = Result<impl ServerSentEvent + Send + 'static, warp::Error>> + Send + 'static
 {
     rx.map(|s| match s {
-        Ok((_, v)) => Ok(warp::sse::data(v)),
+        Ok((c, _)) => Ok(warp::sse::data(c)),
         Err(e) => {
             error!("Error in receiving: {}", e);
             std::process::exit(1);
@@ -240,8 +240,6 @@ struct Token {
 
 impl DockerHub {
     fn new(username: String, password: String) -> DockerHub {
-        // let username = username.clone();
-        // let password = password.clone();
         DockerHub { username, password }
     }
 
