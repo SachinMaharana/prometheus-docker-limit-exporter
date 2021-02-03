@@ -1,6 +1,6 @@
 # prometheus-docker-limit-exporter (work in progress)
 
-This exporter(inspired by a gitlab project) allows to retrieve the [Docker Hub rate limit counts ](https://docs.docker.com/docker-hub/download-rate-limit/#how-can-i-check-my-current-rate) counts as scrape target for Prometheus.
+This exporter allows to retrieve the [Docker Hub rate limit counts ](https://docs.docker.com/docker-hub/download-rate-limit/#how-can-i-check-my-current-rate) counts as scrape target for Prometheus.
 
 The exporter obtains an auth token and then queries the Docker Hub registry and represent limits, remanining into a Gauge metric.
 
