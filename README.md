@@ -18,4 +18,11 @@ http://localhost:3000 // for grafana dashboard
 
 ```
 
+## DockerHub Authetication
+
+```
+export DOCKERHUB_USERNAME='xxxxxx'
+export DOCKERHUB_PASSWORD='xxxxxx'
+```
+
 ![Grafana](grafana.png)
