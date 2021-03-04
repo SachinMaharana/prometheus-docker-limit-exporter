@@ -11,14 +11,14 @@ use broadcast::{Receiver, Sender};
 use futures::{Stream, StreamExt};
 use jsonwebtoken::{dangerous_insecure_decode_with_validation, Algorithm, Validation};
 use prometheus::{Gauge, Registry};
-use reqwest::header::HeaderValue;
-use serde::{Deserialize, Serialize};
 use std::env;
 use std::result::Result;
 use std::time::Duration;
 use tokio::sync::broadcast;
 use warp::{sse::ServerSentEvent, Filter};
 use warp::{Rejection, Reply};
+
+use prom_docker_limit_exporter::docker::{Claims, DockerHub, Token};
 
 lazy_static! {
     static ref DOCKER_GAUGE_REMAINING: Gauge = register_gauge!(opts!(
@@ -125,7 +125,7 @@ async fn metrics_handler() -> Result<impl Reply, Rejection> {
 }
 
 async fn metrics_collector(docker_client: DockerHub, tx: Sender<(f64, f64)>) {
-    let mut collect_interval = tokio::time::interval(Duration::from_secs(9));
+    let mut collect_interval = tokio::time::interval(Duration::from_secs(10));
 
     let mut token = extract_token(&docker_client).await;
 
@@ -150,18 +150,17 @@ fn cleanup_metrics(limit: String, remain: String) -> Option<(f64, f64)> {
         warn!("Limit and Remain is Empty.");
         return None;
     }
-
-    let limit_split: Vec<&str> = limit.as_str().split(";").collect();
-    let remain_split: Vec<&str> = remain.as_str().split(";").collect();
+    let limit_split: Vec<&str> = limit.as_str().split(';').collect();
+    let remain_split: Vec<&str> = remain.as_str().split(';').collect();
 
     if !limit_split.is_empty() && !remain_split.is_empty() {
         let final_limit = limit_split[0].to_string().parse().unwrap();
         let final_remain = remain_split[0].to_string().parse().unwrap();
 
-        return Some((final_limit, final_remain));
+        Some((final_limit, final_remain))
     } else {
         warn!("Limit Vector and Remain Vector is Empty");
-        return None;
+        None
     }
 }
 
@@ -224,82 +223,82 @@ fn is_valid_token(token: &Token) -> bool {
             }
         }
     }
-    return true;
+    true
 }
 
-#[derive(Clone)]
-struct DockerHub {
-    username: String,
-    password: String,
-}
+// #[derive(Clone)]
+// struct DockerHub {
+//     username: String,
+//     password: String,
+// }
 
-#[derive(Deserialize, Debug, Clone)]
-struct Token {
-    token: String,
-}
+// #[derive(Deserialize, Debug, Clone)]
+// struct Token {
+//     token: String,
+// }
 
-impl DockerHub {
-    fn new(username: String, password: String) -> DockerHub {
-        DockerHub { username, password }
-    }
+// impl DockerHub {
+//     fn new(username: String, password: String) -> DockerHub {
+//         DockerHub { username, password }
+//     }
 
-    async fn get_token(&self) -> Result<Token, Box<dyn std::error::Error>> {
-        let token_url = "https://auth.docker.io/token?service=registry.docker.io&scope=repository:ratelimitpreview/test:pull";
+//     async fn get_token(&self) -> Result<Token, Box<dyn std::error::Error>> {
+//         let token_url = "https://auth.docker.io/token?service=registry.docker.io&scope=repository:ratelimitpreview/test:pull";
 
-        if !self.username.is_empty() && !self.password.is_empty() {
-            info!("Using Authenticated Token");
-            let token_response: Token = reqwest::Client::new()
-                .get(token_url)
-                .basic_auth(&self.username, Some(&self.password))
-                .send()
-                .await?
-                .json()
-                .await?;
+//         if !self.username.is_empty() && !self.password.is_empty() {
+//             info!("Using Authenticated Token");
+//             let token_response: Token = reqwest::Client::new()
+//                 .get(token_url)
+//                 .basic_auth(&self.username, Some(&self.password))
+//                 .send()
+//                 .await?
+//                 .json()
+//                 .await?;
 
-            return Ok(token_response);
-        }
+//             return Ok(token_response);
+//         }
 
-        info!("Using Anonymous Token");
-        let token_response: Token = reqwest::Client::new()
-            .get(token_url)
-            .send()
-            .await?
-            .json()
-            .await?;
-        Ok(token_response)
-    }
+//         info!("Using Anonymous Token");
+//         let token_response: Token = reqwest::Client::new()
+//             .get(token_url)
+//             .send()
+//             .await?
+//             .json()
+//             .await?;
+//         Ok(token_response)
+//     }
 
-    async fn get_docker_limits(
-        &self,
-        token: Token,
-    ) -> Result<(String, String), Box<dyn std::error::Error>> {
-        let registry_url = "https://registry-1.docker.io/v2/ratelimitpreview/test/manifests/latest";
+//     async fn get_docker_limits(
+//         &self,
+//         token: Token,
+//     ) -> Result<(String, String), Box<dyn std::error::Error>> {
+//         let registry_url = "https://registry-1.docker.io/v2/ratelimitpreview/test/manifests/latest";
 
-        let response: reqwest::Response = reqwest::Client::new()
-            .head(registry_url)
-            .bearer_auth(token.token)
-            .send()
-            .await?;
+//         let response: reqwest::Response = reqwest::Client::new()
+//             .head(registry_url)
+//             .bearer_auth(token.token)
+//             .send()
+//             .await?;
 
-        let lm = response
-            .headers()
-            .get("ratelimit-limit")
-            .map(|x| x.to_str())
-            .unwrap_or(Ok(""))?
-            .into();
+//         let lm = response
+//             .headers()
+//             .get("ratelimit-limit")
+//             .map(|x| x.to_str())
+//             .unwrap_or(Ok(""))?
+//             .into();
 
-        let rm = response
-            .headers()
-            .get("ratelimit-remaining")
-            .unwrap_or(&HeaderValue::from_static(""))
-            .to_str()?
-            .into();
+//         let rm = response
+//             .headers()
+//             .get("ratelimit-remaining")
+//             .unwrap_or(&HeaderValue::from_static(""))
+//             .to_str()?
+//             .into();
 
-        Ok((lm, rm))
-    }
-}
+//         Ok((lm, rm))
+//     }
+// }
 
-#[derive(Debug, Deserialize, Serialize)]
-struct Claims {
-    exp: usize,
-}
+// #[derive(Debug, Deserialize, Serialize)]
+// struct Claims {
+//     exp: usize,
+// }
