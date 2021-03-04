@@ -71,18 +71,20 @@ async fn main() {
         }
     });
 
-    let route = warp::path("ticks").and(warp::get()).map(move || {
+    // TODO: Expose API for limit information. It's incomplete now.
+    let tick_route = warp::path("ticks").and(warp::get()).map(move || {
         let rx1 = tx1.subscribe();
 
         let event_stream = metrics_stream(rx1);
         warp::sse::reply(warp::sse::keep_alive().stream(event_stream))
     });
 
-    let routes = metrics_route.or(route);
+    let routes = metrics_route.or(tick_route);
 
     warp::serve(routes).run(([0, 0, 0, 0], 8080)).await;
 }
 
+// TODO: Expose API for limit information. It's incomplete now.
 fn metrics_stream(
     rx: Receiver<(f64, f64)>,
 ) -> impl Stream<Item = Result<impl ServerSentEvent + Send + 'static, warp::Error>> + Send + 'static
