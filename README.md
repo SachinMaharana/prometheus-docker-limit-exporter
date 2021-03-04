@@ -1,4 +1,4 @@
-# prometheus-docker-limit-exporter (work in progress)
+# prometheus-docker-limit-exporter (wip)
 
 This exporter allows to retrieve the [Docker Hub rate limit counts ](https://docs.docker.com/docker-hub/download-rate-limit/#how-can-i-check-my-current-rate) counts as scrape target for Prometheus.
 
